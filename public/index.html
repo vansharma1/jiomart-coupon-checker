@@ -55,63 +55,71 @@
     </div>
   </div>
 
-  <script>
-    // Generate coupon with fixed prefix "3M9B" + 6 random chars
-    function generateCoupon() {
-      const prefix = "3M9B";
-      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let randomPart = "";
-      for (let i = 0; i < 6; i++) {
-        randomPart += chars[Math.floor(Math.random() * chars.length)];
-      }
-      return prefix + randomPart;
-    }
+<script>
+  // Generate random 10-char coupon with fixed prefix
+  function generateCoupon() {
+  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+  let code = "";
+  for (let i = 0; i < 10; i++) {
+    code += chars[Math.floor(Math.random() * chars.length)];
+  }
+  return code;
+  }
 
-    document.getElementById("configForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
+  // Sleep helper
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-      const cartId = document.getElementById("cartId").value;
-      const authToken = document.getElementById("authToken").value;
-      const userId = document.getElementById("userId").value;
-      const pin = document.getElementById("pin").value;
-      const count = parseInt(document.getElementById("count").value);
+  document.getElementById("configForm").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-      const tableBody = document.getElementById("resultTable");
-      tableBody.innerHTML = "";
+    const cartId = document.getElementById("cartId").value;
+    const authToken = document.getElementById("authToken").value;
+    const userId = document.getElementById("userId").value;
+    const pin = document.getElementById("pin").value;
+    const count = parseInt(document.getElementById("count").value);
 
-      for (let i = 0; i < count; i++) {
-        const coupon = generateCoupon();
+    const tableBody = document.getElementById("resultTable");
+    tableBody.innerHTML = "";
 
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${coupon}</td>
-          <td>⏳ Checking...</td>
-          <td></td>
-        `;
-        tableBody.appendChild(row);
+    for (let i = 0; i < count; i++) {
+      const coupon = generateCoupon();
 
-        try {
-          const res = await fetch("/api/check-coupon", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ coupon, cartId, authToken, userId, pin }),
-          });
+      const row = document.createElement("tr");
+      row.innerHTML = `
+        <td>${coupon}</td>
+        <td>⏳ Checking...</td>
+        <td></td>
+      `;
+      tableBody.appendChild(row);
 
-          const data = await res.json();
+      try {
+        const res = await fetch("/api/check-coupon", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ coupon, cartId, authToken, userId, pin }),
+        });
 
-          if (data.result?.status === "success") {
-            row.cells[1].innerHTML = "✅ Valid";
-            row.cells[2].innerHTML = "Discount applied!";
-          } else {
-            row.cells[1].innerHTML = "❌ Invalid";
-            row.cells[2].innerHTML = data.result?.reason?.reason_eng || "Unknown";
-          }
-        } catch (err) {
-          row.cells[1].innerHTML = "⚠️ Error";
-          row.cells[2].innerHTML = err.message;
+        const data = await res.json();
+
+        if (data.result?.status === "success") {
+          row.cells[1].innerHTML = "✅ Valid";
+          row.cells[2].innerHTML = "Discount applied!";
+        } else {
+          row.cells[1].innerHTML = "❌ Invalid";
+          row.cells[2].innerHTML = data.result?.reason?.reason_eng || "Unknown";
         }
+      } catch (err) {
+        row.cells[1].innerHTML = "⚠️ Error";
+        row.cells[2].innerHTML = err.message;
       }
-    });
-  </script>
+
+      // 🔹 Wait 5 seconds before next request
+      if (i < count - 1) {
+        await sleep(5000);
+      }
+    }
+  });
+</script>
+
 </body>
 </html>
