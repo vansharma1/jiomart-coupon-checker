@@ -55,14 +55,15 @@
   </div>
 
   <script>
-    // Generate random 10-char coupon
+    // Generate coupon with fixed prefix "3M9B" + 6 random chars
     function generateCoupon() {
+      const prefix = "3M9B";
       const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-      let code = "";
-      for (let i = 0; i < 10; i++) {
-        code += chars[Math.floor(Math.random() * chars.length)];
+      let randomPart = "";
+      for (let i = 0; i < 6; i++) {
+        randomPart += chars[Math.floor(Math.random() * chars.length)];
       }
-      return code;
+      return prefix + randomPart;
     }
 
     document.getElementById("configForm").addEventListener("submit", async (e) => {
