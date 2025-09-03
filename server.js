@@ -1,4 +1,4 @@
-import fetch from "node-fetch";
+import axios from "axios";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -8,22 +8,28 @@ export default async function handler(req, res) {
   try {
     const { coupon, cartId, authToken, userId, pin } = req.body;
 
-    const response = await fetch(
-      `https://www.jiomart.com/mst/rest/v1/5/cart/apply_coupon?coupon_code=${coupon}&cart_id=${cartId}`,
+    const response = await axios.get(
+      `https://www.jiomart.com/mst/rest/v1/5/cart/apply_coupon`,
       {
-        method: "GET",
+        params: {
+          coupon_code: coupon,
+          cart_id: cartId
+        },
         headers: {
           "authtoken": authToken,
           "userid": userId,
           "pin": pin,
-          "Accept": "application/json, text/plain, */*",
-        },
+          "Accept": "application/json, text/plain, */*"
+        }
       }
     );
 
-    const data = await response.json();
-    return res.status(200).json({ coupon, result: data });
+    return res.status(200).json({ coupon, result: response.data });
   } catch (err) {
-    return res.status(500).json({ error: "Server error", details: err.message });
+    // If API fails, axios throws
+    return res.status(500).json({
+      coupon,
+      error: err.response?.data || err.message
+    });
   }
 }
