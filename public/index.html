@@ -58,14 +58,21 @@
 <script>
   // Generate random 10-char coupon with fixed prefix
   function generateCoupon() {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let code = "";
-  for (let i = 0; i < 10; i++) {
-    code += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return code;
+  const prefix = "1J7M"; // fixed start
+  const numbers = "0123456789";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+
+  let code = prefix;
+
+  // Pattern: number, letter, number, letter, number, letter
+  for (let i = 0; i < 3; i++) {
+    code += numbers[Math.floor(Math.random() * numbers.length)];
+    code += letters[Math.floor(Math.random() * letters.length)];
   }
 
+  return code;
+  }
+  
   // Sleep helper
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
