@@ -2,13 +2,11 @@
   "name": "jiomart-coupon-checker",
   "version": "1.0.0",
   "description": "JioMart coupon code generator and checker",
-  "main": "server.js",
+  "type": "module",
   "scripts": {
-    "dev": "node dev",
-    "start": "node dev"
+    "dev": "vercel dev"
   },
   "dependencies": {
     "axios": "^1.7.2"
-  },
-  "type": "module"
+  }
 }
