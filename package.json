@@ -2,10 +2,10 @@
   "name": "jiomart-coupon-checker",
   "version": "1.0.0",
   "description": "JioMart coupon code generator and checker using Node.js, Express, and API integration",
-  "main": "backend/server.js",
+  "main": "server.js",
   "scripts": {
-    "start": "node backend/server.js",
-    "dev": "nodemon backend/server.js"
+    "start": "server.js",
+    "dev": "server.js"
   },
   "keywords": [
     "jiomart",
