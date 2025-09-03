@@ -4,8 +4,8 @@
   "description": "JioMart coupon code generator and checker using Node.js, Express, and API integration",
   "main": "server.js",
   "scripts": {
-    "start": "server.js",
-    "dev": "server.js"
+    "start": "node server.js",
+    "dev": "node server.js"
   },
   "keywords": [
     "jiomart",
@@ -15,7 +15,7 @@
     "express",
     "nodejs"
   ],
-  "author": "Your Name",
+  "author": "Saksham",
   "license": "MIT",
   "dependencies": {
     "cors": "^2.8.5",
@@ -24,6 +24,5 @@
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
-  },
-  "type": "module"
+  }
 }
