@@ -6,11 +6,20 @@ export default async function handler(req, res) {
   }
 
   try {
-    // Ensure body is parsed (sometimes Vercel gives string)
-    let body = req.body;
-    if (typeof body === "string") {
-      body = JSON.parse(body);
-    }
+    // Parse JSON body manually
+    const body = await new Promise((resolve, reject) => {
+      let data = "";
+      req.on("data", chunk => {
+        data += chunk;
+      });
+      req.on("end", () => {
+        try {
+          resolve(JSON.parse(data || "{}"));
+        } catch (err) {
+          reject(err);
+        }
+      });
+    });
 
     const { coupon, cartId, authToken, userId, pin } = body;
 
@@ -18,7 +27,6 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    // Call JioMart API
     const response = await axios.get(
       "https://www.jiomart.com/mst/rest/v1/5/cart/apply_coupon",
       {
@@ -27,16 +35,15 @@ export default async function handler(req, res) {
           authtoken: authToken,
           userid: userId,
           pin: pin,
-          Accept: "application/json, text/plain, */*",
-        },
+          Accept: "application/json, text/plain, */*"
+        }
       }
     );
 
     return res.status(200).json({ coupon, result: response.data });
   } catch (err) {
     return res.status(500).json({
-      coupon,
-      error: err.response?.data || err.message,
+      error: err.response?.data || err.message
     });
   }
 }
