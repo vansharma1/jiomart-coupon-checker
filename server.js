@@ -1,15 +1,13 @@
-import express from "express";
 import fetch from "node-fetch";
-import cors from "cors";
 
-const app = express();
-app.use(cors());
-app.use(express.json());
-
-app.post("/check-coupon", async (req, res) => {
-  const { coupon, cartId, authToken, userId, pin } = req.body;
+export default async function handler(req, res) {
+  if (req.method !== "POST") {
+    return res.status(405).json({ error: "Method not allowed" });
+  }
 
   try {
+    const { coupon, cartId, authToken, userId, pin } = req.body;
+
     const response = await fetch(
       `https://www.jiomart.com/mst/rest/v1/5/cart/apply_coupon?coupon_code=${coupon}&cart_id=${cartId}`,
       {
@@ -24,10 +22,8 @@ app.post("/check-coupon", async (req, res) => {
     );
 
     const data = await response.json();
-    res.json({ coupon, result: data });
+    return res.status(200).json({ coupon, result: data });
   } catch (err) {
-    res.status(500).json({ coupon, error: err.message });
+    return res.status(500).json({ error: "Server error", details: err.message });
   }
-});
-
-app.listen(3000, () => console.log("✅ Server running on http://localhost:3000"));
+}
