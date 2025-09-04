@@ -8,7 +8,7 @@
 </head>
 <body class="p-4 bg-light">
   <div class="container">
-    <h2 class="mb-4">Generator & Checker</h2>
+    <h2 class="mb-4">JioMart Coupon Generator & Checker</h2>
 
     <!-- User Inputs -->
     <form id="configForm" class="row g-3 mb-4">
@@ -31,6 +31,11 @@
       <div class="col-md-6">
         <label class="form-label">How many coupons to test?</label>
         <input type="number" class="form-control" id="count" value="5" min="1" max="50">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Prefix (optional)</label>
+        <input class="form-control" id="prefix" placeholder="e.g. 1J7M or leave blank">
+        <div id="prefixWarning" class="form-text text-danger"></div>
       </div>
       <div class="col-12">
         <button class="btn btn-primary w-100">Generate & Check</button>
@@ -56,26 +61,51 @@
   </div>
 
 <script>
-  // Generate random 10-char coupon with fixed prefix
-  function generateCoupon() {
-  const prefix = "1J7M"; // fixed start
-  const numbers = "0123456789";
-  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-
-  let code = prefix;
-
-  // Pattern: number, letter, number, letter, number, letter
-  for (let i = 0; i < 3; i++) {
-    code += numbers[Math.floor(Math.random() * numbers.length)];
-    code += letters[Math.floor(Math.random() * letters.length)];
-  }
-
-  return code;
-  }
-  
   // Sleep helper
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
+  // Coupon generator with strict 10-char rule
+  function generateCoupon(prefixInput) {
+    const numbers = "0123456789";
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+    const prefixField = document.getElementById("prefix");
+    const prefixWarning = document.getElementById("prefixWarning");
+
+    let code = prefixInput ? prefixInput.toUpperCase() : "";
+
+    // Show warning + highlight if prefix too long
+    if (code.length > 10) {
+      prefixWarning.textContent = "⚠️ Prefix too long — it will be truncated to 10 characters.";
+      prefixField.classList.add("is-invalid"); // Bootstrap red border
+    } else {
+      prefixWarning.textContent = "";
+      prefixField.classList.remove("is-invalid");
+    }
+
+    // Fill with number-letter alternating pattern until 10 chars
+    while (code.length < 10) {
+      code += numbers[Math.floor(Math.random() * numbers.length)];
+      if (code.length < 10) {
+        code += letters[Math.floor(Math.random() * letters.length)];
+      }
+    }
+
+    return code.slice(0, 10); // enforce strict 10 chars
+  }
+
+  // Live validation for prefix
+  document.getElementById("prefix").addEventListener("input", function () {
+    const prefixWarning = document.getElementById("prefixWarning");
+    if (this.value.length > 10) {
+      prefixWarning.textContent = "⚠️ Prefix too long — only first 10 characters will be used.";
+      this.classList.add("is-invalid");
+    } else {
+      prefixWarning.textContent = "";
+      this.classList.remove("is-invalid");
+    }
+  });
+
+  // Handle form submit
   document.getElementById("configForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -84,12 +114,13 @@
     const userId = document.getElementById("userId").value;
     const pin = document.getElementById("pin").value;
     const count = parseInt(document.getElementById("count").value);
+    const prefix = document.getElementById("prefix").value;
 
     const tableBody = document.getElementById("resultTable");
     tableBody.innerHTML = "";
 
     for (let i = 0; i < count; i++) {
-      const coupon = generateCoupon();
+      const coupon = generateCoupon(prefix);
 
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -120,7 +151,7 @@
         row.cells[2].innerHTML = err.message;
       }
 
-      // 🔹 Wait 5 seconds before next request
+      // wait 5 sec before next
       if (i < count - 1) {
         await sleep(5000);
       }
