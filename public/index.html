@@ -8,7 +8,7 @@
 </head>
 <body class="p-4 bg-light">
   <div class="container">
-    <h2 class="mb-4">JioMart Coupon Generator & Checker</h2>
+    <h1 class="mb-4">🎟️ JioMart Coupon</h1>
 
     <!-- User Inputs -->
     <form id="configForm" class="row g-3 mb-4">
@@ -29,13 +29,13 @@
         <input class="form-control" id="pin" required>
       </div>
       <div class="col-md-6">
-        <label class="form-label">How many coupons to test?</label>
-        <input type="number" class="form-control" id="count" value="5" min="1" max="50">
+        <label class="form-label">Prefix (optional)</label>
+        <input class="form-control" id="prefix" placeholder="e.g., 1J7M">
+        <div class="form-text text-muted">Will be padded to 10 chars.</div>
       </div>
       <div class="col-md-6">
-        <label class="form-label">Prefix (optional)</label>
-        <input class="form-control" id="prefix" placeholder="e.g. 1J7M or leave blank">
-        <div id="prefixWarning" class="form-text text-danger"></div>
+        <label class="form-label">How many coupons to test?</label>
+        <input type="number" class="form-control" id="count" value="5" min="1" max="50">
       </div>
       <div class="col-12">
         <button class="btn btn-primary w-100">Generate & Check</button>
@@ -61,51 +61,74 @@
   </div>
 
 <script>
-  // Sleep helper
-  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+  // Weighted probabilities
+  const digitWeights = {
+    '1': 0.10, '2': 0.12, '3': 0.09, '4': 0.11,
+    '5': 0.18, '6': 0.15, '7': 0.08, '8': 0.10, 
+    '9': 0.07, '0': 0.08
+  };
 
-  // Coupon generator with strict 10-char rule
-  function generateCoupon(prefixInput) {
-    const numbers = "0123456789";
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const prefixField = document.getElementById("prefix");
-    const prefixWarning = document.getElementById("prefixWarning");
+  const letterWeights = {
+    'J':0.10,'G':0.12,'D':0.13,'E':0.10,'F':0.12,'C':0.11,'B':0.12,'H':0.11,'K':0.11,
+    'U':0.12,'S':0.10,'M':0.09,'I':0.08,'L':0.04,'N':0.13,'O':0.23,'P':0.12,
+    'Q':0.12,'W':0.12,'Y':0.12,'R':0.08,'V':0.07,'Z':0.07,'X':0.06,'T':0.05
+  };
 
-    let code = prefixInput ? prefixInput.toUpperCase() : "";
-
-    // Show warning + highlight if prefix too long
-    if (code.length > 10) {
-      prefixWarning.textContent = "⚠️ Prefix too long — it will be truncated to 10 characters.";
-      prefixField.classList.add("is-invalid"); // Bootstrap red border
-    } else {
-      prefixWarning.textContent = "";
-      prefixField.classList.remove("is-invalid");
-    }
-
-    // Fill with number-letter alternating pattern until 10 chars
-    while (code.length < 10) {
-      code += numbers[Math.floor(Math.random() * numbers.length)];
-      if (code.length < 10) {
-        code += letters[Math.floor(Math.random() * letters.length)];
-      }
-    }
-
-    return code.slice(0, 10); // enforce strict 10 chars
-  }
-
-  // Live validation for prefix
-  document.getElementById("prefix").addEventListener("input", function () {
-    const prefixWarning = document.getElementById("prefixWarning");
-    if (this.value.length > 10) {
-      prefixWarning.textContent = "⚠️ Prefix too long — only first 10 characters will be used.";
-      this.classList.add("is-invalid");
-    } else {
-      prefixWarning.textContent = "";
-      this.classList.remove("is-invalid");
-    }
+  // Add missing letters with tiny weight
+  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
+    if (!letterWeights[l]) letterWeights[l] = 0.01;
   });
 
-  // Handle form submit
+  // Weighted choice helper
+  function weightedChoice(weights) {
+    const items = Object.keys(weights);
+    const probs = Object.values(weights);
+    const sum = probs.reduce((a,b) => a+b, 0);
+    const rnd = Math.random() * sum;
+    let acc = 0;
+    for (let i=0; i<items.length; i++) {
+      acc += probs[i];
+      if (rnd <= acc) return items[i];
+    }
+    return items[items.length-1];
+  }
+
+  // Generate weighted coupon with optional prefix
+  function generateCoupon(prefixInput) {
+    let code = prefixInput ? prefixInput.toUpperCase() : "";
+
+    // Warn & trim if prefix too long
+    if (code.length > 10) {
+      alert("Prefix is longer than 10 characters. It will be truncated.");
+      code = code.slice(0, 10);
+    }
+
+    // Decide what the next char should be
+    let nextShouldBeDigit;
+    if (code.length === 0) {
+      nextShouldBeDigit = true; // start with digit if no prefix
+    } else {
+      const lastChar = code[code.length - 1];
+      nextShouldBeDigit = isNaN(lastChar); // if last is letter → digit next
+    }
+
+    // Fill until 10 chars
+    while (code.length < 10) {
+      if (nextShouldBeDigit) {
+        code += weightedChoice(digitWeights);
+      } else {
+        code += weightedChoice(letterWeights);
+      }
+      nextShouldBeDigit = !nextShouldBeDigit; // alternate
+    }
+
+    return code;
+  }
+
+  // Sleep helper (5 sec delay)
+  const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+  // Form handler
   document.getElementById("configForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -113,8 +136,8 @@
     const authToken = document.getElementById("authToken").value;
     const userId = document.getElementById("userId").value;
     const pin = document.getElementById("pin").value;
-    const count = parseInt(document.getElementById("count").value);
     const prefix = document.getElementById("prefix").value;
+    const count = parseInt(document.getElementById("count").value);
 
     const tableBody = document.getElementById("resultTable");
     tableBody.innerHTML = "";
@@ -151,9 +174,8 @@
         row.cells[2].innerHTML = err.message;
       }
 
-      // wait 5 sec before next
       if (i < count - 1) {
-        await sleep(5000);
+        await sleep(5000); // wait 5s before next check
       }
     }
   });
