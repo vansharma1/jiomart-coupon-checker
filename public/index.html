@@ -29,13 +29,12 @@
         <input class="form-control" id="pin" required>
       </div>
       <div class="col-md-6">
-        <label class="form-label">Prefix (optional)</label>
-        <input class="form-control" id="prefix" placeholder="e.g., 1J7M">
-        <div class="form-text text-muted">Will be padded to 10 chars.</div>
-      </div>
-      <div class="col-md-6">
         <label class="form-label">How many coupons to test?</label>
         <input type="number" class="form-control" id="count" value="5" min="1" max="50">
+      </div>
+      <div class="col-md-6">
+        <label class="form-label">Prefix (optional)</label>
+        <input class="form-control" id="prefix" placeholder="e.g. 1J7M">
       </div>
       <div class="col-12">
         <button class="btn btn-primary w-100">Generate & Check</button>
@@ -61,74 +60,52 @@
   </div>
 
 <script>
-  // Weighted probabilities
-  const digitWeights = {
-    '1': 0.10, '2': 0.12, '3': 0.09, '4': 0.11,
-    '5': 0.18, '6': 0.15, '7': 0.08, '8': 0.10, 
-    '9': 0.07, '0': 0.08
-  };
+  // Generate unique 10-char coupon (digit/letter alternating)
+  function generateUniqueCoupon(prefixInput = "") {
+    const digits = "0123456789".split("");
+    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
 
-  const letterWeights = {
-    'J':0.10,'G':0.12,'D':0.13,'E':0.10,'F':0.12,'C':0.11,'B':0.12,'H':0.11,'K':0.11,
-    'U':0.12,'S':0.10,'M':0.09,'I':0.08,'L':0.04,'N':0.13,'O':0.23,'P':0.12,
-    'Q':0.12,'W':0.12,'Y':0.12,'R':0.08,'V':0.07,'Z':0.07,'X':0.06,'T':0.05
-  };
+    let code = (prefixInput || "").toUpperCase();
 
-  // Add missing letters with tiny weight
-  "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").forEach(l => {
-    if (!letterWeights[l]) letterWeights[l] = 0.01;
-  });
+    // Enforce strict max length = 10
+    if (code.length > 10) code = code.slice(0, 10);
 
-  // Weighted choice helper
-  function weightedChoice(weights) {
-    const items = Object.keys(weights);
-    const probs = Object.values(weights);
-    const sum = probs.reduce((a,b) => a+b, 0);
-    const rnd = Math.random() * sum;
-    let acc = 0;
-    for (let i=0; i<items.length; i++) {
-      acc += probs[i];
-      if (rnd <= acc) return items[i];
-    }
-    return items[items.length-1];
-  }
+    // Track already used chars
+    const usedDigits = new Set(code.split("").filter(c => /\d/.test(c)));
+    const usedLetters = new Set(code.split("").filter(c => /[A-Z]/.test(c)));
 
-  // Generate weighted coupon with optional prefix
-  function generateCoupon(prefixInput) {
-    let code = prefixInput ? prefixInput.toUpperCase() : "";
-
-    // Warn & trim if prefix too long
-    if (code.length > 10) {
-      alert("Prefix is longer than 10 characters. It will be truncated.");
-      code = code.slice(0, 10);
-    }
-
-    // Decide what the next char should be
+    // Determine next type
     let nextShouldBeDigit;
     if (code.length === 0) {
-      nextShouldBeDigit = true; // start with digit if no prefix
+      nextShouldBeDigit = true; // start with digit
     } else {
       const lastChar = code[code.length - 1];
-      nextShouldBeDigit = isNaN(lastChar); // if last is letter → digit next
+      nextShouldBeDigit = isNaN(lastChar); // if last is letter → next digit
     }
 
-    // Fill until 10 chars
     while (code.length < 10) {
       if (nextShouldBeDigit) {
-        code += weightedChoice(digitWeights);
+        const available = digits.filter(d => !usedDigits.has(d));
+        if (available.length === 0) break;
+        const choice = available[Math.floor(Math.random() * available.length)];
+        code += choice;
+        usedDigits.add(choice);
       } else {
-        code += weightedChoice(letterWeights);
+        const available = letters.filter(l => !usedLetters.has(l));
+        if (available.length === 0) break;
+        const choice = available[Math.floor(Math.random() * available.length)];
+        code += choice;
+        usedLetters.add(choice);
       }
-      nextShouldBeDigit = !nextShouldBeDigit; // alternate
+      nextShouldBeDigit = !nextShouldBeDigit;
     }
 
     return code;
   }
 
-  // Sleep helper (5 sec delay)
+  // Sleep helper
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
-  // Form handler
   document.getElementById("configForm").addEventListener("submit", async (e) => {
     e.preventDefault();
 
@@ -136,14 +113,14 @@
     const authToken = document.getElementById("authToken").value;
     const userId = document.getElementById("userId").value;
     const pin = document.getElementById("pin").value;
-    const prefix = document.getElementById("prefix").value;
     const count = parseInt(document.getElementById("count").value);
+    const prefix = document.getElementById("prefix").value.trim();
 
     const tableBody = document.getElementById("resultTable");
     tableBody.innerHTML = "";
 
     for (let i = 0; i < count; i++) {
-      const coupon = generateCoupon(prefix);
+      const coupon = generateUniqueCoupon(prefix);
 
       const row = document.createElement("tr");
       row.innerHTML = `
@@ -174,8 +151,9 @@
         row.cells[2].innerHTML = err.message;
       }
 
+      // Wait 5s before next request
       if (i < count - 1) {
-        await sleep(5000); // wait 5s before next check
+        await sleep(5000);
       }
     }
   });
