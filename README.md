@@ -1,22 +1,111 @@
-# 🎟️ JioMart Coupon Generator & Checker
+# 🛒 JioMart Coupon Generator & Checker
 
-A simple web app that **generates JioMart-style coupon codes** (with a fixed prefix `3M9B` + 6 random alphanumeric characters) and checks their validity against the official JioMart API.
-
-Built with:
-- **Frontend:** HTML, CSS, Bootstrap, JavaScript
-- **Backend (API route):** Node.js + Axios
-- **Deployment:** Vercel Serverless Functions
+A simple web app to **generate random 10-character coupon codes** and **test them against JioMart’s coupon API**.  
+Built with **Bootstrap 5 + Plain JavaScript** and deployed on **Vercel**.
 
 ---
 
-## 🚀 Features
-- Generate random coupons like `3M9B7K2LQ9`
-- Test multiple coupons in one go
-- Show live results in a clean table:
-  - ✅ Valid (applied successfully)
-  - ❌ Invalid (coupon expired, used, or invalid)
-  - ⚠️ Error (API/network issue)
-- Configurable Cart ID, Auth Token, User ID, and PIN
+## ✨ Features
+
+- ✅ Generate **10-character coupons** (strict rule enforced).  
+- ✅ Supports **prefix-based coupons** or **fully random generation**.  
+- ✅ **Validates prefix length** (max 10 chars, warning + red border if exceeded).  
+- ✅ **Alternate Number–Letter pattern** in coupon codes.  
+- ✅ Test multiple coupons automatically.  
+- ✅ 5-second delay between each coupon check (to avoid spamming).  
+- ✅ Responsive Bootstrap UI.  
 
 ---
+
+## 📂 Project Structure
+
+```
+.
+├── public/
+│   └── index.html         # Frontend UI (Bootstrap + JS)
+├── api/
+│   └── check-coupon.js  # Backend API (Node.js + Axios, runs on Vercel)
+├── vercel.json        # Vercel deployment config
+├── package.json       # Dependencies for serverless function
+└── README.md          # Documentation
+```
+
+---
+
+## 🚀 Setup & Deployment
+
+### 1. Clone the repo
+```bash
+git clone https://github.com/your-username/jiomart-coupon-checker.git
+cd jiomart-coupon-checker
+```
+
+### 2. Install dependencies
+```bash
+npm install
+```
+
+### 3. Run locally
+You can use [Vercel CLI](https://vercel.com/docs/cli) to test:
+```bash
+vercel dev
+```
+
+### 4. Deploy to Vercel
+```bash
+vercel
+```
+
+---
+
+## ⚙️ How It Works
+
+1. Enter:
+   - **Cart ID**
+   - **Auth Token**
+   - **User ID**
+   - **PIN**
+   - Number of coupons to test
+   - (Optional) **Prefix** for coupon codes  
+
+2. Click **Generate & Check**.
+
+3. The app will:
+   - Generate coupons (prefix + random fill OR full random if no prefix).
+   - Enforce **exact 10-character rule**.
+   - Call `/api/check-coupon` for each coupon with a **5-second delay**.
+   - Display results in a table:  
+     - ✅ Valid (discount applied)  
+     - ❌ Invalid (reason shown)  
+     - ⚠️ Error (network/server issue)  
+
+---
+
+## 📜 Example Coupon Patterns
+
+- Prefix `1J7M` → `1J7M5G5K7V`  
+- Prefix `3M9B` → `3M9B1V2Y9A`  
+- No prefix → `8K2J4R9M7D` (fully random)
+
+---
+
+## 🛠 Tech Stack
+
+- **Frontend:** HTML, Bootstrap 5, Vanilla JS  
+- **Backend:** Node.js (Axios, Serverless function on Vercel)  
+- **Hosting:** Vercel  
+
+---
+
+## ⚠️ Disclaimer
+
+This tool is built **for educational purposes only**.  
+Do not misuse it to spam or exploit third-party services.  
+Use responsibly 🚀  
+
+---
+
+## 📸 Screenshot (UI)
+
+![App Screenshot](https://github.com/user-attachments/assets/28a86bdc-bd35-4621-b88f-8b5a989b8c87)
 
