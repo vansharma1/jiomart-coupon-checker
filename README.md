@@ -3,6 +3,19 @@
 A simple web app to **generate random 10-character coupon codes** and **test them against JioMart’s coupon API**.  
 Built with **Bootstrap 5 + Plain JavaScript** and deployed on **Vercel**.
 
+### ⚠️ Rate Limit Warning
+
+The JioMart API may enforce strict rate limiting.
+
+ - Each coupon request is delayed by 5 seconds in this webapp to reduce risk of 403 Forbidden errors.
+ - 10 coupon request is allowed per 1 / 2 minutes as per api limit.
+
+Sending too many requests too fast may cause:
+
+  - Temporary IP bans
+  - Blocked auth tokens
+  - Permanent denial of service
+
 ---
 
 ## ✨ Features
