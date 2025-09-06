@@ -61,47 +61,37 @@
 
 <script>
   // Generate unique 10-char coupon (digit/letter alternating)
-  function generateUniqueCoupon(prefixInput = "") {
-    const digits = "0123456789".split("");
-    const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("");
+  function generateCoupon(prefixInput = "") {
+  const digits = "0123456789";
+  const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
-    let code = (prefixInput || "").toUpperCase();
+  let code = (prefixInput || "").toUpperCase();
 
-    // Enforce strict max length = 10
-    if (code.length > 10) code = code.slice(0, 10);
+  // Enforce strict max length = 10
+  if (code.length > 10) code = code.slice(0, 10);
 
-    // Track already used chars
-    const usedDigits = new Set(code.split("").filter(c => /\d/.test(c)));
-    const usedLetters = new Set(code.split("").filter(c => /[A-Z]/.test(c)));
-
-    // Determine next type
-    let nextShouldBeDigit;
-    if (code.length === 0) {
-      nextShouldBeDigit = true; // start with digit
-    } else {
-      const lastChar = code[code.length - 1];
-      nextShouldBeDigit = isNaN(lastChar); // if last is letter → next digit
-    }
-
-    while (code.length < 10) {
-      if (nextShouldBeDigit) {
-        const available = digits.filter(d => !usedDigits.has(d));
-        if (available.length === 0) break;
-        const choice = available[Math.floor(Math.random() * available.length)];
-        code += choice;
-        usedDigits.add(choice);
-      } else {
-        const available = letters.filter(l => !usedLetters.has(l));
-        if (available.length === 0) break;
-        const choice = available[Math.floor(Math.random() * available.length)];
-        code += choice;
-        usedLetters.add(choice);
-      }
-      nextShouldBeDigit = !nextShouldBeDigit;
-    }
-
-    return code;
+  // Determine what should come next
+  let nextShouldBeDigit;
+  if (code.length === 0) {
+    nextShouldBeDigit = true; // start with digit
+  } else {
+    const lastChar = code[code.length - 1];
+    nextShouldBeDigit = isNaN(lastChar); // if last is letter → next is digit
   }
+
+  while (code.length < 10) {
+    if (nextShouldBeDigit) {
+      const digit = digits[Math.floor(Math.random() * digits.length)];
+      code += digit;
+    } else {
+      const letter = letters[Math.floor(Math.random() * letters.length)];
+      code += letter;
+    }
+    nextShouldBeDigit = !nextShouldBeDigit;
+  }
+
+  return code;
+}
 
   // Sleep helper
   const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
