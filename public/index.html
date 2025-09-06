@@ -110,7 +110,7 @@
     tableBody.innerHTML = "";
 
     for (let i = 0; i < count; i++) {
-      const coupon = generateUniqueCoupon(prefix);
+      const coupon = generateCoupon(prefix);
 
       const row = document.createElement("tr");
       row.innerHTML = `
